@@ -1,0 +1,26 @@
+name: Prueba de token local
+
+on: push
+
+permissions: {}
+
+jobs:
+  comprobar-token:
+    runs-on: [self-hosted, Windows]
+    steps:
+      - name: Comparar secreto con variable local
+        shell: powershell
+        env:
+          TOKEN: ${{ secrets.DEV_TOKEN }}
+        run: |
+          if ([string]::IsNullOrEmpty($env:TOKEN) -or [string]::IsNullOrEmpty($env:LOCAL_DEV_TOKEN)) {
+            Write-Host "ERROR: falta configurar alguna de las variables."
+            exit 1
+          }
+
+          if ($env:TOKEN -ceq $env:LOCAL_DEV_TOKEN) {
+            Write-Host "CORRECTO: las claves coinciden."
+          } else {
+            Write-Host "ERROR: las claves no coinciden."
+            exit 1
+          }
