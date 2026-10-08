@@ -1,0 +1,3 @@
+Prueba de validación con un token incorrecto.
+
+Este cambio permite comprobar que el workflow CI detecta un error en la validación del entorno.
