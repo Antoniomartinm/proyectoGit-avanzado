@@ -1,4 +1,5 @@
 name: CD
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -15,26 +16,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Incrementar versión en el README
         run: |
-          LAST=$(grep -oP 'AppVersion-\K[0-9]+' README.md | tail -1)
-          NEXT=$((LAST + 1))
+          LAST=$(grep -oE 'AppVersion-[0-9]+' README.md | sed 's/AppVersion-//' | sort -n | tail -1)
+          NEXT=$(( ${LAST:-0} + 1 ))
           FECHA=$(date '+%d/%m/%Y %H:%M')
-          echo "- AppVersion-$NEXT - $FECHA" >> README.md
+
+          sed -i -E '/^- AppVersion-[0-9]+[[:space:]]*-/d' README.md
+
+          if grep -qE '^AppVersion-[0-9]+' README.md; then
+            sed -i -E "s/^AppVersion-[0-9]+.*$/AppVersion-$NEXT - $FECHA/" README.md
+          else
+            echo "AppVersion-$NEXT - $FECHA" >> README.md
+          fi
 
       - name: Commit y push del README
+        if: github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs: bump de versión" || echo "Sin cambios que commitear"
-          git push || echo "Nada que subir"
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: bump de versión"
+            git push
+          fi
 
   validate-prod:
     needs: bump-version
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+
       - name: Validar entorno de producción
         env:
           TOKEN: ${{ secrets.PROD_TOKEN }}
