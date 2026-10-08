@@ -26,7 +26,7 @@ jobs:
           sed -i -E '/^- AppVersion-[0-9]+[[:space:]]*-/d' README.md
 
           if grep -qE '^AppVersion-[0-9]+' README.md; then
-            sed -i -E "s/^AppVersion-[0-9]+.*$/AppVersion-$NEXT - $FECHA/" README.md
+            sed -i -E "s|^AppVersion-[0-9]+.*$|AppVersion-$NEXT - $FECHA|" README.md
           else
             echo "AppVersion-$NEXT - $FECHA" >> README.md
           fi
